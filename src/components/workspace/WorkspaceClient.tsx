@@ -14,6 +14,7 @@ import { ModuleCard } from "@/components/ui/ModuleCard";
 import { Badge, Button, GlassCard, Meter, ScoreRing } from "@/components/ui/primitives";
 import { CATEGORY_META, getNews } from "@/lib/data/news";
 import { contentMode } from "@/lib/ai/provider";
+import { loadAICase } from "@/lib/ai/clientCache";
 import { useWorkspaceAI } from "@/lib/ai/WorkspaceAIContext";
 import { cn } from "@/lib/utils";
 import type { DictKey } from "@/lib/i18n/dictionaries";
@@ -51,10 +52,16 @@ export function WorkspaceClient({ id, query }: { id: string; query?: string }) {
 
   const override = query ? { en: query, zh: query } : undefined;
   // Research potential is a FIXED expert judgement — no salt, no regeneration.
-  const c = useMemo(() => getCase(id, 0, override) as unknown as Case, [id, query]);
+  const offlineCase = useMemo(() => getCase(id, 0, override) as unknown as Case, [id, query]);
+  const [aiCase, setAiCase] = useState<Case | null>(null);
+  useEffect(() => {
+    const ai = loadAICase(id);
+    if (ai) setAiCase(ai as unknown as Case);
+  }, [id]);
+  const c = aiCase ?? offlineCase;
   const meta = CATEGORY_META[c.category];
   const news = getNews(id);
-  const cmode = contentMode(id);
+  const cmode = aiCase ? "live" : contentMode(id);
   const modeCfg = RESEARCH_MODES.find((m) => m.id === mode)!;
   const { setWorkspace } = useWorkspaceAI();
 

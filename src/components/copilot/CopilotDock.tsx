@@ -40,10 +40,28 @@ export function CopilotDock() {
     setMsgs((m) => [...m, { role: "user", text: shown }]);
     setInput("");
     setTyping(true);
-    setTimeout(() => {
-      setMsgs((m) => [...m, { role: "ai", text: researchReply(q, locale, workspace) }]);
-      setTyping(false);
-    }, 700);
+
+    const ctx = workspace
+      ? `Topic: ${workspace.title}\nCategory: ${workspace.category}\nTheories: ${workspace.theories.join("; ")}\nMethods: ${workspace.methods.join("; ")}\nDatasets: ${workspace.datasets.join("; ")}\nPapers: ${workspace.papers.slice(0, 5).join("; ")}\nThesis: ${workspace.thesis}`
+      : "";
+
+    // try live AI; fall back to the offline research engine
+    (async () => {
+      try {
+        const res = await fetch("/api/copilot", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: q, context: ctx }),
+        });
+        const data = await res.json();
+        const reply = data?.ok && data?.reply ? data.reply : researchReply(q, locale, workspace);
+        setMsgs((m) => [...m, { role: "ai", text: reply }]);
+      } catch {
+        setMsgs((m) => [...m, { role: "ai", text: researchReply(q, locale, workspace) }]);
+      } finally {
+        setTyping(false);
+      }
+    })();
   }, [locale, workspace]);
 
   // a "Refine with AI" button elsewhere can drive the dock

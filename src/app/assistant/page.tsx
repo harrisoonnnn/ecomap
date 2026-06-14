@@ -18,6 +18,7 @@ import { useI18n } from "@/lib/i18n/I18nProvider";
 import { Button, GlassCard } from "@/components/ui/primitives";
 import { EXAMPLE_PROMPTS } from "@/lib/ai/generate";
 import { SECTIONS_FOR_PROGRESS } from "@/lib/ai/progress";
+import { saveAICase } from "@/lib/ai/clientCache";
 import { cn } from "@/lib/utils";
 
 const INPUTS = [
@@ -44,21 +45,43 @@ export default function AssistantPage() {
     // hero case; anything else is analysed as a brand-new custom topic.
     const hero = id ?? matchHero(text);
     const target = hero ?? slugify(text);
-    const href = hero ? `/workspace/${target}` : `/workspace/${target}?q=${encodeURIComponent(text)}`;
+    const offlineHref = hero ? `/workspace/${target}` : `/workspace/${target}?q=${encodeURIComponent(text)}`;
     setTargetId(target);
     setRunning(true);
     setStep(0);
+
     const steps = SECTIONS_FOR_PROGRESS.length;
-    const iv = setInterval(() => {
-      setStep((s) => {
-        if (s >= steps - 1) {
-          clearInterval(iv);
-          setTimeout(() => router.push(href), 600);
-          return s;
+    const iv = setInterval(() => setStep((s) => (s >= steps - 1 ? s : s + 1)), 360);
+
+    // hero cases are already hand-authored & sourced — go straight there.
+    if (hero) {
+      setTimeout(() => { clearInterval(iv); router.push(offlineHref); }, steps * 360 + 400);
+      return;
+    }
+
+    // otherwise try LIVE AI research (real web search). Falls back to the
+    // offline methodology engine if no key / error.
+    (async () => {
+      try {
+        const res = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ topic: text, id: target }),
+        });
+        const data = await res.json();
+        clearInterval(iv);
+        setStep(steps - 1);
+        if (data?.ok && data?.case) {
+          saveAICase(target, data.case);
+          router.push(`/workspace/${target}`);
+        } else {
+          router.push(offlineHref);
         }
-        return s + 1;
-      });
-    }, 360);
+      } catch {
+        clearInterval(iv);
+        router.push(offlineHref);
+      }
+    })();
   }
 
   return (

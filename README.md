@@ -42,7 +42,19 @@ This is a self-contained, investor-demoable MVP with **realistic mock data**. Th
 - Auth seam ready for **Clerk**
 
 #### Live AI (optional)
-Without a key, Ecomap runs fully offline: the benchmark **delivery-riders** case is hand-researched with real institutions/reports/links (badged *Researched & sourced*), and every other topic uses Ecomap's research **methodology framework** with placeholder sources (badged *AI methodology framework* — verify figures before citing). Set `OPENAI_API_KEY` and extend `lib/ai/provider.ts` to upgrade generic topics and the Copilot to genuine, live, sourced generation (badged *Live AI research*).
+Without a key, Ecomap runs fully offline: the benchmark **delivery-riders** case is hand-researched with real institutions/reports/links (badged *Researched & sourced*), and every other topic uses Ecomap's research **methodology framework** with placeholder sources (badged *AI methodology framework* — verify figures before citing). 
+
+To enable **genuine, live, web-searched** research for any topic:
+
+```bash
+cp .env.example .env.local
+# edit .env.local and set OPENAI_API_KEY=sk-...
+npm run dev
+```
+
+With a key set, the Research Assistant calls `POST /api/generate`, which uses the **OpenAI Responses API with the hosted `web_search` tool** to actually look up real institutions, reports, datasets and papers — then returns a full `CaseStudy` following the same 11-step methodology as the benchmark case (badged *Live AI research*). The Copilot (`POST /api/copilot`) answers with the live model using the open workspace as context. Both routes fall back to the offline engine on any error, so the app never breaks. The key is read server-side only (`src/lib/ai/openai.ts`) and is never sent to the browser.
+
+Tunables: `OPENAI_MODEL` (default `gpt-4.1`), `OPENAI_BASE_URL`.
 
 The workspace-aware **Copilot** remembers the open workspace (topic, theories, methods, evidence, thesis) and acts as a research partner: "expand the theory", "find stronger evidence", "give me Chinese sources", "replace this theory with behavioural economics", "challenge my argument", "suggest a stronger thesis". Every module also has a **Refine with AI** button that opens the Copilot pre-seeded with that section's context.
 
