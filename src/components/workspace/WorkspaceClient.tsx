@@ -104,13 +104,14 @@ export function WorkspaceClient({ id, query }: { id: string; query?: string }) {
       </GlassCard>
 
       <div className="flex items-start gap-6">
-        {/* SIDEBAR — sticky, follows viewport (Notion-style), sits below header */}
-        <aside className="sticky top-24 hidden h-[calc(100vh-7rem)] w-52 shrink-0 self-start overflow-y-auto lg:block">
+        {/* SIDEBAR — floating TOC that follows reading progress (sticky, content-height) */}
+        <aside className="sticky top-24 hidden max-h-[calc(100vh-7rem)] w-52 shrink-0 self-start overflow-y-auto lg:block">
           <GlassCard className="p-2">
             <p className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{t("ws.contents")}</p>
             {SECTIONS.map((s) => (
               <button key={s.id} onClick={() => scrollTo(s.id)}
-                className={cn("group flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-all", active === s.id ? "surface-strong font-semibold text-brand-deep" : "text-ink-soft hover:surface-soft")}>
+                className={cn("group relative flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-all", active === s.id ? "surface-strong font-semibold text-brand-deep" : "text-ink-soft hover:surface-soft")}>
+                {active === s.id && <motion.span layoutId="toc-active" className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-gradient-to-b from-brand-deep to-brand-purple" />}
                 <s.icon className={cn("h-4 w-4 shrink-0", active === s.id && "text-brand-deep")} />
                 <span className="truncate">{t(s.key)}</span>
                 {modeCfg.focus.includes(s.id) && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-brand-purple" />}

@@ -203,6 +203,25 @@ export interface CaseEssayGuide {
   example: L;
 }
 
+/**
+ * V3 synthesis layer: a main argument that visibly inherits theory, model,
+ * evidence and literature from the other workspace sections.
+ */
+export interface CaseIntegratedArgument {
+  n: number;
+  coreClaim: L;
+  theory: L;            // which theory from the Theory section
+  theoryApply: L[];     // logic-chain steps shown with arrows
+  mathMethod: L;        // which modelling approach
+  mathSupports: { collect: L; relationship: L; result: L };
+  evidence: L;          // which dataset(s) from the Data center
+  literature: L;        // which paper(s) from the Literature section
+  evaluation: L;
+  miniConclusion: L;
+  /** the visual writing sequence: each is one node in the chain */
+  logicChain: L[];
+}
+
 export interface CaseEssayLevel {
   rq: L;
   thesis: L;
@@ -254,5 +273,6 @@ export interface CaseStudy {
   neededDatasets?: CaseDataset[];
   papers?: CasePaper[];
   essayGuides?: CaseEssayGuide[];
+  integratedArguments?: CaseIntegratedArgument[];
 }
 

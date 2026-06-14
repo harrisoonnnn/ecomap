@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BarChart3, BookOpen, Brain, Calculator, ChevronRight, Database, ExternalLink, Library, Scale, Sigma } from "lucide-react";
+import { BarChart3, BookOpen, Brain, Calculator, ChevronRight, Database, ExternalLink, Layers, Library, Scale, Sigma } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import type { getCase } from "@/lib/cases";
+import type { CaseIntegratedArgument } from "@/lib/cases/types";
 import { ModuleCard } from "@/components/ui/ModuleCard";
 import { Badge, Dots, GlassCard, Meter } from "@/components/ui/primitives";
 import { EconDiagram } from "@/components/diagrams/EconDiagram";
@@ -273,6 +274,23 @@ export function EssayGuideSection({ c, defaultLevel }: { c: Case; defaultLevel: 
         <EssayBlock label={t("es.rq")} text={tl(data.rq)} highlight />
         <EssayBlock label={t("es.thesis")} text={tl(data.thesis)} highlight />
       </div>
+
+      {/* SYNTHESIS LAYER — integrated arguments inheriting every prior section */}
+      {c.integratedArguments && c.integratedArguments.length > 0 && (
+        <div className="mb-5">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br from-brand-deep to-brand-purple text-white"><Layers className="h-3.5 w-3.5" /></span>
+            <div>
+              <p className="text-sm font-bold text-ink">{t("ia.title")}</p>
+              <p className="text-[11px] text-ink-muted">{t("ia.subtitle")}</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {c.integratedArguments.map((a) => <IntegratedArgument key={a.n} a={a} />)}
+          </div>
+        </div>
+      )}
+
       {guides && guides.length > 0 && (
         <div className="space-y-2">
           {guides.map((g) => (
@@ -293,6 +311,92 @@ export function EssayGuideSection({ c, defaultLevel }: { c: Case; defaultLevel: 
       )}
       <div className="mt-3 rounded-xl glass-tint p-3"><p className="text-xs font-semibold uppercase tracking-wide text-brand-deep">{t("es.note")}</p><p className="mt-1 text-sm text-ink-soft">{tl(data.note)}</p></div>
     </ModuleCard>
+  );
+}
+
+/* ---------- integrated argument (synthesis) ---------- */
+function IntegratedArgument({ a }: { a: CaseIntegratedArgument }) {
+  const { t, tl } = useI18n();
+  return (
+    <details className="group rounded-xl border hairline surface-soft p-4 open:surface" open={a.n === 1}>
+      <summary className="flex cursor-pointer list-none items-center gap-3">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-500 to-purple-600 text-xs font-bold text-white">{a.n}</span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{t("ia.arg")} {a.n}</p>
+          <p className="text-sm font-semibold leading-snug text-ink">{tl(a.coreClaim)}</p>
+        </div>
+        <ChevronRight className="h-4 w-4 shrink-0 text-ink-muted transition-transform group-open:rotate-90" />
+      </summary>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        {/* left: the inherited building blocks */}
+        <div className="space-y-2.5 text-xs">
+          <Inherit tag={t("sec.theory")} label={t("ia.theory")} color="from-indigo-500 to-violet-600">
+            <p className="font-semibold text-ink">{tl(a.theory)}</p>
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-1 gap-y-1">
+              {a.theoryApply.map((s, i) => (
+                <span key={i} className="flex items-center gap-1">
+                  <span className="rounded-md surface px-1.5 py-0.5 text-ink-soft">{tl(s)}</span>
+                  {i < a.theoryApply.length - 1 && <span className="text-brand-purple">→</span>}
+                </span>
+              ))}
+            </div>
+          </Inherit>
+
+          <Inherit tag={t("sec.math")} label={t("ia.math")} color="from-cyan-500 to-sky-600">
+            <p className="font-semibold text-ink">{tl(a.mathMethod)}</p>
+            <div className="mt-1 space-y-1">
+              <SH label={t("ia.collect")} val={tl(a.mathSupports.collect)} c="text-blue-600" />
+              <SH label={t("ia.relationship")} val={tl(a.mathSupports.relationship)} c="text-violet-600" />
+              <SH label={t("ia.result")} val={tl(a.mathSupports.result)} c="text-emerald-600" />
+            </div>
+          </Inherit>
+
+          <Inherit tag={t("ds.title")} label={t("ia.evidence")} color="from-emerald-500 to-teal-600">
+            <p className="text-ink-soft">{tl(a.evidence)}</p>
+          </Inherit>
+
+          <Inherit tag={t("sec.literature")} label={t("ia.literature")} color="from-amber-500 to-orange-600">
+            <p className="text-ink-soft">{tl(a.literature)}</p>
+          </Inherit>
+
+          <div className="rounded-lg glass-tint p-2 text-xs">
+            <SH label={t("ia.evaluation")} val={tl(a.evaluation)} c="text-brand-deep" />
+            <p className="mt-1 font-semibold text-ink">{t("ia.mini")}: <span className="font-normal text-ink-soft">{tl(a.miniConclusion)}</span></p>
+          </div>
+        </div>
+
+        {/* right: the visual writing logic chain */}
+        <div>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">{t("ia.chain")}</p>
+          <div className="space-y-0">
+            {a.logicChain.map((step, i) => (
+              <div key={i}>
+                <div className="flex items-start gap-2 rounded-lg surface px-2.5 py-1.5">
+                  <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-deep to-brand-purple text-[9px] font-bold text-white">{i + 1}</span>
+                  <span className="text-xs leading-snug text-ink-soft">{tl(step)}</span>
+                </div>
+                {i < a.logicChain.length - 1 && <div className="ml-3.5 h-3 w-px bg-brand-purple/40" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </details>
+  );
+}
+
+function Inherit({ tag, label, color, children }: { tag: string; label: string; color: string; children: React.ReactNode }) {
+  const { t } = useI18n();
+  return (
+    <div className="rounded-lg border hairline surface p-2.5">
+      <div className="mb-1 flex items-center gap-1.5">
+        <span className={cn("rounded px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white bg-gradient-to-r", color)}>{tag}</span>
+        <span className="text-[10px] text-ink-muted">{t("ia.from")} ↑</span>
+      </div>
+      <p className="mb-0.5 text-[11px] font-semibold text-ink-soft">{label}</p>
+      {children}
+    </div>
   );
 }
 

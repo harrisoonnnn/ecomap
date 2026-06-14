@@ -7,6 +7,7 @@ import { deliveryTheories, deliveryMethods, deliveryCharts } from "./delivery-th
 import { deliveryDatasets, deliveryPapers } from "./delivery-data";
 import { deliveryProposals } from "./delivery-proposals";
 import { deliveryEssayGuides, deliveryOverviewExpanded } from "./delivery-essay";
+import { deliveryIntegratedArguments } from "./delivery-integrated";
 
 /**
  * V3 benchmark: the delivery-rider case, deeply researched and sourced.
@@ -31,4 +32,5 @@ export const deliveryWorkersV3: CaseStudy = {
   neededDatasets: deliveryDatasets,
   papers: deliveryPapers,
   essayGuides: deliveryEssayGuides,
+  integratedArguments: deliveryIntegratedArguments,
 };
