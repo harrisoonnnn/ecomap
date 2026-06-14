@@ -21,7 +21,7 @@ interface RunOpts {
   system: string;
   user: string;
   webSearch?: boolean;
-  /** ask the model to return strict JSON */
+  /** ask the model to return strict JSON (do NOT combine with webSearch) */
   json?: boolean;
   maxTokens?: number;
   temperature?: number;
@@ -40,8 +40,10 @@ export async function runOpenAI(opts: RunOpts): Promise<string> {
     temperature: opts.temperature ?? 0.4,
     max_output_tokens: opts.maxTokens ?? 8000,
   };
-  if (opts.webSearch) body.tools = [{ type: "web_search" }];
-  if (opts.json) body.text = { format: { type: "json_object" } };
+  // The hosted web-search tool type in the Responses API is "web_search_preview".
+  if (opts.webSearch) body.tools = [{ type: "web_search_preview" }];
+  // Structured JSON and the web-search tool conflict — only set format when NOT searching.
+  if (opts.json && !opts.webSearch) body.text = { format: { type: "json_object" } };
 
   const res = await fetch(`${BASE}/responses`, {
     method: "POST",
@@ -51,16 +53,18 @@ export async function runOpenAI(opts: RunOpts): Promise<string> {
     },
     body: JSON.stringify(body),
     // research calls can be slow; give them room
-    signal: AbortSignal.timeout(120_000),
+    signal: AbortSignal.timeout(170_000),
   });
 
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
-    throw new Error(`OpenAI ${res.status}: ${detail.slice(0, 300)}`);
+    throw new Error(`OpenAI ${res.status}: ${detail.slice(0, 400)}`);
   }
 
   const data = await res.json();
-  return extractText(data);
+  const text = extractText(data);
+  if (!text) throw new Error("OpenAI returned empty output");
+  return text;
 }
 
 /** Responses API returns a structured object; pull out all output_text parts. */

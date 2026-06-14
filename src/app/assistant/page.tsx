@@ -37,6 +37,7 @@ export default function AssistantPage() {
   const [running, setRunning] = useState(false);
   const [step, setStep] = useState(0);
   const [targetId, setTargetId] = useState("ev-tariffs");
+  const [notice, setNotice] = useState<string | null>(null);
 
   function run(prompt: string, id?: string) {
     const text = prompt.trim();
@@ -75,10 +76,15 @@ export default function AssistantPage() {
           saveAICase(target, data.case);
           router.push(`/workspace/${target}`);
         } else {
+          if (data?.reason && data.reason !== "no-key") {
+            console.warn("[Ecomap] live AI generation failed:", data.reason, data.message ?? "");
+            setNotice(`${data.reason}${data.message ? ": " + data.message : ""}`);
+          }
           router.push(offlineHref);
         }
-      } catch {
+      } catch (e) {
         clearInterval(iv);
+        console.warn("[Ecomap] /api/generate request failed:", e);
         router.push(offlineHref);
       }
     })();
@@ -93,6 +99,12 @@ export default function AssistantPage() {
         <h1 className="font-display text-3xl font-bold text-ink sm:text-4xl">{t("as.title")}</h1>
         <p className="mx-auto mt-3 max-w-xl text-ink-soft">{t("as.subtitle")}</p>
       </div>
+
+      {notice && (
+        <div className="mx-auto mt-4 max-w-xl rounded-xl border border-amber-300 bg-amber-50/80 px-4 py-2 text-center text-xs text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
+          Live AI unavailable ({notice}) — showing the offline methodology framework instead.
+        </div>
+      )}
 
       <GlassCard className="mt-8 p-5">
         <div className="mb-3 flex flex-wrap gap-2">
