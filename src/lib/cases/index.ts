@@ -1,6 +1,6 @@
 import type { CaseStudy } from "./types";
 import { evTariffs } from "./ev-tariffs";
-import { deliveryWorkers } from "./delivery-workers";
+import { deliveryWorkersV3 } from "./delivery-v3";
 import { buildGenericCase } from "./generic";
 import { getNews } from "@/lib/data/news";
 import type { NewsCategory } from "@/types";
@@ -8,7 +8,7 @@ import type { NewsCategory } from "@/types";
 /** Hand-authored hero cases (richest content). */
 const HERO: Record<string, CaseStudy> = {
   "ev-tariffs": evTariffs,
-  "delivery-workers": deliveryWorkers,
+  "delivery-workers": deliveryWorkersV3,
 };
 
 /** keyword → category for free-form assistant prompts not in the news feed. */

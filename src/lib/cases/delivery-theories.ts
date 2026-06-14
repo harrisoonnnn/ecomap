@@ -1,0 +1,145 @@
+import { L, LS, type CaseTheory, type CaseMethod, type CaseChart } from "./types";
+
+/** Deeper, varied theories — different diagrams, some with none. */
+export const deliveryTheories: CaseTheory[] = [
+  {
+    name: L("Labour Market Theory with Monopsony", "含买方垄断的劳动力市场理论"), match: 95, diagram: "labourMarket",
+    what: L("A model of how wages and employment are set by the interaction of labour demand and supply. Under monopsony, a single dominant buyer of labour faces the whole upward-sloping supply curve and sets pay below the competitive level.", "一个关于工资与就业如何由劳动供需互动决定的模型。在买方垄断下，单一主导的劳动买方面对整条向上倾斜的供给曲线，并将薪酬定在竞争水平之下。"),
+    explanation: L("Wages clear where labour demand meets supply; market power on the buyer side suppresses both pay and employment.", "工资在劳动供需相交处出清；买方的市场势力同时压低薪酬与就业。"),
+    relevance: L("China's delivery market is a near-duopoly (Meituan, Ele.me), so platforms plausibly have wage-setting power over riders.", "中国外卖市场近乎双寡头（美团、饿了么），平台对骑手很可能具备工资设定权。"),
+    applicationPoints: LS(
+      ["If platforms hold monopsony power, a mandated benefit can raise rider welfare without the textbook job losses.", "若平台具买方垄断势力，强制福利可在不出现教科书式失业的情况下提升骑手福利。"],
+      ["The cost can come out of platform rents rather than rider pay or employment.", "成本可来自平台租金，而非骑手收入或就业。"],
+      ["Whether this holds depends on the labour-supply elasticity to the platform — an empirical question.", "这是否成立取决于对平台的劳动供给弹性——一个实证问题。"],
+    ),
+    strengths: LS(["Predicts wage and employment effects precisely", "精确预测工资与就业效应"], ["Monopsony explains persistently low gig pay", "买方垄断解释零工长期低薪"]),
+    weaknesses: LS(["Requires estimating elasticities that are hard to identify", "需要估计难以识别的弹性"], ["Abstracts from algorithmic control", "抽象掉了算法控制"]),
+    evaluation: L("The strongest single frame: it turns 'will a mandate cost jobs?' into a testable question about platform market power.", "最有力的单一框架：它把“强制会不会导致失业”转化为关于平台市场势力的可检验问题。"),
+  },
+  {
+    name: L("Economics of Mandated Benefits (Summers 1989)", "强制福利经济学（萨默斯 1989）"), match: 93, diagram: "labourMarket",
+    what: L("Summers showed that a benefit workers value is not equivalent to a tax: its cost is largely shifted into wages, so it causes far less unemployment than a payroll tax of the same size — and can beat tax-financed provision.", "萨默斯指出，劳动者所重视的福利并不等同于税收：其成本在很大程度上转嫁进工资，因此造成的失业远小于同等规模的工资税——并且可能优于税收筹资的提供方式。"),
+    explanation: L("A mandated benefit shifts the labour supply curve; if workers value it, much of the cost is absorbed by lower wages with little disemployment.", "强制福利使劳动供给曲线移动；若劳动者重视它，大部分成本通过更低工资被吸收，几乎不造成失业。"),
+    relevance: L("Directly answers 'who pays?' for rider insurance — likely a mix of riders (via pay), platforms and consumers, not pure job loss.", "直接回答骑手保险“谁来付”——很可能是骑手（通过收入）、平台与消费者的混合，而非纯粹的就业损失。"),
+    applicationPoints: LS(
+      ["If riders value injury cover, expect wage-shifting, not mass layoffs (Gruber 1994 confirms full shifting empirically).", "若骑手重视工伤保障，预期工资转嫁而非大规模裁员（Gruber 1994 实证确认完全转嫁）。"],
+      ["The more riders value the benefit, the smaller the efficiency cost.", "骑手越重视该福利，效率成本越小。"],
+      ["Combine with monopsony: shifting can fall on rents rather than rider pay.", "与买方垄断结合：转嫁可落在租金而非骑手收入上。"],
+    ),
+    strengths: LS(["Reframes mandates as efficient if valued", "在福利被重视时将强制重新定义为有效率"], ["Backed by Gruber's incidence evidence", "有 Gruber 的归宿证据支持"]),
+    weaknesses: LS(["Assumes workers correctly value future benefits", "假设劳动者正确评估未来福利"], ["Group-specific costs can concentrate on riders", "群体特定成本可能集中于骑手"]),
+    evaluation: L("Essential for the 'who pays' section: it predicts modest, shared incidence rather than the disemployment critics assume.", "“谁来付”部分的关键：它预测温和、共担的归宿，而非批评者假设的失业。"),
+  },
+  {
+    name: L("Principal–Agent & Information Asymmetry", "委托代理与信息不对称"), match: 90, diagram: "externalities", noDiagram: true,
+    what: L("When a principal (platform) cannot perfectly observe an agent's (rider's) effort, and holds information the agent lacks, the contract it designs shapes behaviour — sometimes perversely. This frame needs no supply-demand diagram.", "当委托人（平台）无法完美观察代理人（骑手）的努力、且掌握代理人所缺的信息时，其设计的合约会塑造行为——有时是反常的。该框架不需要供需图。"),
+    explanation: L("Hidden action plus asymmetric information lets the platform design pay rules that push risk and unsafe speed onto riders.", "隐藏行动叠加信息不对称，使平台得以设计将风险与不安全速度推给骑手的薪酬规则。"),
+    relevance: L("Explains why pay-per-order and opaque algorithms generate accidents — and why transparency/insurance rules are corrective.", "解释按单计酬与不透明算法为何导致事故——以及透明度／保险规则为何具纠正性。"),
+    applicationPoints: LS(
+      ["Pay-per-order is a high-powered incentive that rewards speed over safety.", "按单计酬是奖励速度而非安全的强激励。"],
+      ["Riders lack the demand/routing information the platform holds — bargaining power tilts to the platform.", "骑手缺乏平台掌握的需求／路线信息——议价权向平台倾斜。"],
+      ["A mandate realigns incentives by making the platform internalise injury cost.", "强制规定通过让平台内部化工伤成本来重新对齐激励。"],
+    ),
+    strengths: LS(["Explains unsafe behaviour the competitive model misses", "解释竞争模型遗漏的不安全行为"], ["Grounds the case for transparency rules", "为透明度规则奠基"]),
+    weaknesses: LS(["Hard to quantify effort and hidden information", "努力与隐藏信息难以量化"], ["Less directly about social insurance than safety", "更关乎安全而非直接关乎社保"]),
+    evaluation: L("Best used to explain the road-safety externality and 'control without protection' — pairs with monopsony, not a substitute for it.", "最适合解释道路安全外部性与“有控制无保护”——与买方垄断互补，而非替代。"),
+  },
+  {
+    name: L("Externalities & Pigouvian Logic", "外部性与庇古逻辑"), match: 88, diagram: "externalities",
+    what: L("When an activity imposes costs on third parties not reflected in its price, the market over-produces it. A corrective charge that internalises the external cost restores the social optimum.", "当某活动对未反映在价格中的第三方施加成本时，市场会过度生产。一项使外部成本内部化的纠正性收费可恢复社会最优。"),
+    explanation: L("Uninsured rider injuries impose costs on public hospitals and families — a negative externality of cheap delivery.", "未保险的骑手工伤将成本施加于公立医院与家庭——廉价配送的负外部性。"),
+    relevance: L("Mandated injury insurance is a Pigouvian-style internalisation: delivery prices start to reflect their true social cost.", "强制工伤保险是庇古式的内部化：配送价格开始反映其真实社会成本。"),
+    applicationPoints: LS(
+      ["The marginal social cost of delivery exceeds the marginal private cost by the uninsured injury burden.", "配送的边际社会成本超过边际私人成本，差额即未保险工伤负担。"],
+      ["A per-order contribution is effectively a Pigouvian charge that closes the gap.", "按单缴费实质上是弥合该缺口的庇古式收费。"],
+      ["Efficiency improves even before any equity argument.", "在任何公平论证之前，效率即已改善。"],
+    ),
+    strengths: LS(["Clean efficiency rationale independent of fairness", "独立于公平的清晰效率依据"], ["Maps directly onto a per-order levy", "直接对应按单征费"]),
+    weaknesses: LS(["The external cost is hard to value precisely", "外部成本难以精确估值"], ["Ignores who ultimately bears the charge", "忽略最终由谁承担收费"]),
+    evaluation: L("Gives the efficiency spine of the essay; combine with incidence analysis to address fairness.", "提供论文的效率主线；与归宿分析结合以处理公平。"),
+  },
+  {
+    name: L("Behavioural Economics: Present Bias", "行为经济学：现时偏好"), match: 78, diagram: "supplyDemand", noDiagram: true,
+    what: L("People systematically over-weight the present, so they under-save and under-insure against rare future risks — even when it is rational to do so. No diagram is needed; the point is psychological.", "人们系统性地高估当下，因而对罕见的未来风险储蓄不足、投保不足——即便这样做是理性的。无需图示；要点是心理层面的。"),
+    explanation: L("Present-biased riders voluntarily skip insurance they would value if they weighed the future correctly.", "具现时偏好的骑手会自愿放弃他们若正确权衡未来便会重视的保险。"),
+    relevance: L("Explains why voluntary schemes failed and provides a paternalistic justification for a mandate.", "解释自愿方案为何失败，并为强制规定提供家长式理由。"),
+    applicationPoints: LS(
+      ["Low voluntary take-up is predicted by present bias, not just by cost.", "低自愿参保率由现时偏好预测，而不仅是成本。"],
+      ["A default/mandate corrects the bias the way auto-enrolment does for pensions.", "默认／强制如同养老金自动加入一样纠正该偏见。"],
+      ["This counters the 'let riders choose' objection.", "这回应了“让骑手自选”的反对意见。"],
+    ),
+    strengths: LS(["Explains the take-up failure realistically", "现实地解释参保不足"], ["Justifies low-cost nudges and defaults", "为低成本助推与默认提供依据"]),
+    weaknesses: LS(["Raises paternalism concerns", "引发家长式担忧"], ["Effect sizes vary across people", "效应大小因人而异"]),
+    evaluation: L("A strong supporting frame for why a mandate beats voluntarism — use it to rebut the free-choice counterargument.", "支撑“强制优于自愿”的有力框架——用它反驳自由选择的反论。"),
+  },
+];
+
+/** Educational, non-technical quantitative methods. */
+export const deliveryMethods: CaseMethod[] = [
+  {
+    name: L("Difference-in-Differences (DiD)", "双重差分（DiD）"), fit: 94, formula: "Y = β₀ + β₁·Treated + β₂·After + β₃·(Treated×After) + ε",
+    what: L("A way to measure the effect of a policy by comparing a group that got it (treated) with a similar group that didn't (control), before and after.", "一种测量政策效果的方法：将受政策影响的组（处理组）与未受影响的相似组（对照组）在政策前后进行对比。"),
+    how: L("You track both groups over time. The control group shows what would have happened anyway; the extra change in the treated group is the policy's effect (the β₃ term).", "你跟踪两组随时间的变化。对照组显示本来会发生什么；处理组多出的变化就是政策效果（β₃ 项）。"),
+    why: L("It removes biases from things that change for everyone (like a national economic trend), isolating the policy's true impact.", "它剔除了对所有人都变化的因素（如全国经济趋势）带来的偏误，分离出政策的真实影响。"),
+    dataExample: L("Pilot provinces (Beijing, Shanghai…) vs non-pilot provinces, rider earnings & headcount 2021 vs 2023 — using the real pilot rollout.", "试点省份（北京、上海…）对 非试点省份，骑手收入与人数 2021 对 2023——利用真实试点推广。"),
+    application: L("Because the injury-insurance pilot started in 7 provinces in 2022, you have a natural treated/control split to estimate its effect on pay and employment.", "由于工伤保险试点 2022 年在 7 省启动，你天然拥有处理／对照划分，可估计其对收入与就业的影响。"),
+    purpose: L("Estimate the causal effect of the pilot on rider pay and employment.", "估计试点对骑手收入与就业的因果效应。"),
+    assumptions: L("Pilot and non-pilot provinces would have trended in parallel without the policy.", "无政策时试点与非试点省份趋势平行。"),
+    data: L("Provincial rider counts, earnings and fees, before and after 2022.", "省级骑手数、收入与费用，2022 年前后。"),
+    advantages: L("Credible causal estimate from a real natural experiment.", "来自真实自然实验的可信因果估计。"),
+    weaknesses: L("Fails if provinces were chosen non-randomly or trends diverged for other reasons.", "若省份非随机选取或趋势因其他原因偏离则失效。"),
+  },
+  {
+    name: L("Tax-Incidence / Pass-Through Analysis", "税收归宿／转嫁分析"), fit: 90, formula: "Share borne by consumers = εS / (εS + εD)",
+    what: L("A method to work out who actually pays for a cost imposed on a market — the side that can't easily change its behaviour ends up paying more.", "一种判断市场中被施加成本最终由谁承担的方法——越难改变行为的一方承担越多。"),
+    how: L("Compare how sensitive supply (riders) and demand (consumers) are to price. The less sensitive (inelastic) side absorbs more of the cost.", "比较供给（骑手）与需求（消费者）对价格的敏感度。越不敏感（缺乏弹性）的一方吸收越多成本。"),
+    why: L("It answers the central fairness question: does the mandate's cost land on platforms, riders, or consumers?", "它回答核心的公平问题：强制规定的成本落在平台、骑手还是消费者身上？"),
+    dataExample: L("If riders have few alternative jobs (inelastic supply) and platforms hold monopsony power, more cost stays with platforms.", "若骑手少有替代工作（供给缺乏弹性）且平台具买方垄断势力，更多成本留在平台。"),
+    application: L("Use estimated rider labour-supply elasticity and consumer fee sensitivity to predict where the per-order contribution lands.", "用估计的骑手劳动供给弹性与消费者费用敏感度，预测按单缴费最终落点。"),
+    purpose: L("Allocate the mandate's cost across platforms, riders and consumers.", "在平台、骑手与消费者间分配强制成本。"),
+    assumptions: L("Reasonable estimates of supply and demand elasticities.", "对供给与需求弹性的合理估计。"),
+    data: L("Fee, wage and order-volume responses to the contribution.", "费用、薪酬与订单量对缴费的反应。"),
+    advantages: L("Directly answers 'who pays'.", "直接回答“谁来付”。"),
+    weaknesses: L("Elasticities are context-specific and change over time.", "弹性依赖情境且随时间变化。"),
+  },
+  {
+    name: L("Cost–Benefit Analysis (with social cost)", "成本收益分析（含社会成本）"), fit: 85, formula: "NPV = Σ (Benefitₜ − Costₜ) / (1+r)ᵗ",
+    what: L("A structured way to add up all the gains and losses of a policy over time, converting future amounts into today's value, to see if benefits beat costs.", "一种把政策随时间的所有收益与损失加总、并将未来金额折算为今日价值、以判断收益是否超过成本的结构化方法。"),
+    how: L("List every cost (contributions, admin) and benefit (fewer uninsured injuries, less public-hospital burden), discount future values, and compare.", "列出每项成本（缴费、行政）与收益（更少未保险工伤、更轻公立医院负担），对未来值折现，再比较。"),
+    why: L("It turns a messy debate into a single comparable number and forces you to value the things that matter.", "它把纷乱的辩论化为一个可比较的数字，并迫使你为重要事项赋值。"),
+    dataExample: L("Benefit side: avoided injury costs using Shanghai accident data; cost side: per-order contribution × order volume.", "收益端：用上海事故数据估算避免的工伤成本；成本端：按单缴费 × 订单量。"),
+    application: L("Compare the social cost of contributions against avoided injury and old-age burdens to judge net welfare.", "将缴费的社会成本与避免的工伤及养老负担相比，判断净福利。"),
+    purpose: L("Judge whether the mandate improves net social welfare.", "判断强制规定是否提升净社会福利。"),
+    assumptions: L("All major effects can be valued; a defensible discount rate is chosen.", "主要效应均可估值；选取可辩护的折现率。"),
+    data: L("Valued injury costs, contribution rates, order volumes, time horizon.", "估值后的工伤成本、缴费率、订单量、时间跨度。"),
+    advantages: L("Transparent, single decision rule.", "透明的单一决策规则。"),
+    weaknesses: L("Highly sensitive to how you value injuries and the discount rate.", "对工伤估值与折现率高度敏感。"),
+  },
+];
+
+export const deliveryCharts: CaseChart[] = [
+  {
+    id: "scatter", title: L("Rider income vs hours worked", "骑手收入 对 工作时长"),
+    showing: L("Each dot is a rider: weekly hours on the x-axis, weekly earnings on the y-axis, with a fitted trend line.", "每个点是一名骑手：横轴为周工时，纵轴为周收入，并配拟合趋势线。"),
+    trends: L("Earnings rise with hours, but the slope flattens — long hours show diminishing returns as fatigue and saturation set in.", "收入随工时上升，但斜率趋平——长时工作因疲劳与饱和而出现收益递减。"),
+    findings: L("Riders cluster at high hours for modest pay, consistent with low bargaining power.", "骑手集中于高工时、收入一般，符合议价能力低的判断。"),
+    supportsArgument: L("Use it to argue riders work long hours under pressure — supporting the monopsony and present-bias frames.", "用它论证骑手在压力下长时工作——支撑买方垄断与现时偏好框架。"),
+    limitations: L("Cross-sectional: it shows correlation, not the causal effect of hours on pay.", "截面数据：显示相关，而非工时对收入的因果效应。"),
+  },
+  {
+    id: "trend", title: L("Pilot enrolment over time", "试点参保随时间变化"),
+    showing: L("Cumulative rider enrolment in the injury-insurance scheme from 2022 to 2025, with a forecast band.", "工伤保险方案累计参保（2022→2025），含预测区间。"),
+    trends: L("Enrolment climbs from ~6.68m (2023) to ~12.3m (mid-2025) — steepening as the pilot expands.", "参保从约 668 万（2023）升至约 1,234 万（2025 年中）——随试点扩面而陡升。"),
+    findings: L("Mandatory, platform-administered enrolment scales far faster than voluntary schemes ever did.", "强制、平台代办的参保扩张速度远超以往任何自愿方案。"),
+    supportsArgument: L("Strong evidence that a mandate solves the take-up failure — central to the pro-mandate case.", "强证据表明强制解决了参保不足——支持强制的核心论据。"),
+    limitations: L("Counts enrolment, not whether benefits are adequate or claims are paid.", "统计的是参保，而非待遇是否充足或理赔是否兑现。"),
+  },
+  {
+    id: "correlation", title: L("Correlation: pay pressure, hours, accidents", "相关：收入压力、工时、事故"),
+    showing: L("A matrix of correlations between pay-per-order intensity, hours, accident rates and coverage.", "按单计酬强度、工时、事故率与覆盖之间的相关矩阵。"),
+    trends: L("Pay-per-order intensity correlates positively with accident rates and negatively with coverage.", "按单计酬强度与事故率正相关、与覆盖负相关。"),
+    findings: L("The variables move together in the way the principal-agent frame predicts.", "各变量的联动方式符合委托代理框架的预测。"),
+    supportsArgument: L("Motivates the safety externality argument — but flag that correlation isn't causation.", "支撑安全外部性论点——但需提示相关不等于因果。"),
+    limitations: L("Correlation only; confounders (city, experience) are not controlled.", "仅为相关；未控制混杂因素（城市、经验）。"),
+  },
+];
