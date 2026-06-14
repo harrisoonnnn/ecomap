@@ -8,6 +8,11 @@ import {
   LS,
 } from "./types";
 import { poolEvidence, poolMethods, poolTheories, resolvePool } from "./pools";
+import {
+  genericFactors, genericTimeline, genericStakeholders, genericRelations,
+  deepenTheories, deepenMethods, genericCharts, genericDatasets, genericPapers,
+  genericEssayGuides, genericIntegratedArguments, genericOverviewExpanded,
+} from "./generic-v3";
 
 function lower(s: string) {
   return s.charAt(0).toLowerCase() + s.slice(1);
@@ -54,12 +59,14 @@ function proposalFrom(theme: { n: [string, string]; o: [string, string] }, id: s
 export function buildGenericCase(id: string, event: { en: string; zh: string }, category: NewsCategory, salt = 0): CaseStudy {
   const rand = seededRand(`${id}:${salt}`);
   const pool = resolvePool(category, event.en, id);
-  const theories = poolTheories(pool).map((t) => ({ ...t, match: Math.min(98, t.match - Math.floor(rand() * 4)) }));
+  const theories = deepenTheories(
+    poolTheories(pool).map((t) => ({ ...t, match: Math.min(98, t.match - Math.floor(rand() * 4)) })),
+    event.en, event.zh
+  );
+  const methods = deepenMethods(poolMethods(pool), event.en, event.zh);
   const ev = event.en;
   const evZh = event.zh;
   const score = 80 + Math.floor(rand() * 14);
-
-  const factorKeys = ["bg.economic", "bg.political", "bg.social", "bg.technological", "bg.legal", "bg.environmental", "bg.historical", "bg.cultural"];
 
   return {
     id,
@@ -87,28 +94,13 @@ export function buildGenericCase(id: string, event: { en: string; zh: string }, 
         ["It connects to live theoretical and policy debates.", "它与当下的理论与政策辩论紧密相关。"],
       ),
       stakeholders: LS(["Government", "政府"], ["Firms", "企业"], ["Workers", "劳动者"], ["Consumers", "消费者"], ["Investors", "投资者"]),
+      overviewExpanded: genericOverviewExpanded(theories, ev, evZh),
     },
-    factors: factorKeys.map((key) => ({
-      key,
-      summary: L(`${factorLabel(key).en} dimension of "${ev}".`, `「${evZh}」的${factorLabel(key).zh}维度。`),
-      detail: L(`The ${factorLabel(key).en.toLowerCase()} context shapes who is affected by ${lower(ev)} and how strongly, conditioning the size and direction of the economic effects.`, `${factorLabel(key).zh}背景塑造了「${evZh}」影响谁、影响多大，制约着经济效应的规模与方向。`),
-      statistics: LS([`Quantify the ${factorLabel(key).en.toLowerCase()} baseline from official data.`, `用官方数据量化${factorLabel(key).zh}基线。`]),
-      stakeholders: LS(["Most affected groups in this dimension.", "该维度中受影响最大的群体。"]),
-      essayIdeas: LS([`Use this factor to motivate a clear research question.`, `用此因素引出清晰的研究问题。`]),
-      arguments: LS([`This dimension supports intervention to address ${lower(ev)}.`, `该维度支持为应对「${evZh}」而干预。`]),
-      counterarguments: LS([`But it may also caution against over-reaction.`, `但它也提醒不要反应过度。`]),
-    })),
-    timeline: [
-      { date: "T−3y", kind: "cause", title: L("Structural pressures build", "结构性压力累积"), detail: L(`Underlying ${category} forces set the stage for ${lower(ev)}.`, `潜在的${category}力量为「${evZh}」铺垫。`) },
-      { date: "T−1y", kind: "cause", title: L("Early signals & pilots", "早期信号与试点"), detail: L("First indicators and small-scale measures appear.", "首批指标与小规模措施出现。") },
-      { date: "T", kind: "trigger", title: event, detail: L("The headline event crystallises the issue.", "标志性事件使问题凸显。") },
-      { date: "T+6m", kind: "milestone", title: L("Responses & adjustments", "反应与调整"), detail: L("Affected actors adapt; second-round effects emerge.", "受影响主体适应；二轮效应显现。") },
-      { date: "T+2y", kind: "future", title: L("Spillovers & new equilibrium", "外溢与新均衡"), detail: L("Substitution, entry/exit and innovation reshape outcomes.", "替代、进入／退出与创新重塑结果。") },
-      { date: "T+5y", kind: "future", title: L("Long-run verdict", "长期结论"), detail: L("Whether the intervention proved efficient and equitable becomes clear.", "干预是否高效且公平变得清晰。") },
-    ],
+    factors: genericFactors(ev, evZh, category),
+    timeline: genericTimeline(ev, evZh, category, event),
     theories,
     counter: pool.debates.slice(0, 2).map(makeCounter),
-    methods: poolMethods(pool),
+    methods,
     datasets: [
       { name: "World Development Indicators", provider: "World Bank", url: "https://data.worldbank.org" },
       { name: "World Economic Outlook", provider: "IMF", url: "https://www.imf.org/en/Publications/WEO" },
@@ -180,19 +172,13 @@ export function buildGenericCase(id: string, event: { en: string; zh: string }, 
         note: L("Full academic structure: literature integration, explicit methodology, identification, policy evaluation and research gaps.", "完整学术结构：文献整合、明确方法、识别、政策评估与研究空白。"),
       },
     },
+    // ---- V3 depth modules (templated methodology, not real citations) ----
+    stakeholdersDetailed: genericStakeholders(ev, evZh),
+    relations: genericRelations(),
+    charts: genericCharts(ev, evZh),
+    neededDatasets: genericDatasets(pool, ev, evZh),
+    papers: genericPapers(pool, ev, evZh),
+    essayGuides: genericEssayGuides(ev, evZh, theories[0].name.en, theories[0].name.zh),
+    integratedArguments: genericIntegratedArguments(theories, methods, ev, evZh),
   };
-}
-
-function factorLabel(key: string): { en: string; zh: string } {
-  const map: Record<string, { en: string; zh: string }> = {
-    "bg.historical": { en: "Historical", zh: "历史" },
-    "bg.social": { en: "Social", zh: "社会" },
-    "bg.cultural": { en: "Cultural", zh: "文化" },
-    "bg.political": { en: "Political", zh: "政治" },
-    "bg.economic": { en: "Economic", zh: "经济" },
-    "bg.technological": { en: "Technological", zh: "技术" },
-    "bg.environmental": { en: "Environmental", zh: "环境" },
-    "bg.legal": { en: "Legal", zh: "法律" },
-  };
-  return map[key] ?? { en: key, zh: key };
 }

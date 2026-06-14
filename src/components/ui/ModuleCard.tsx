@@ -8,9 +8,11 @@ import {
   Copy,
   Download,
   RefreshCw,
+  Sparkles,
 } from "lucide-react";
 import { cn, copyToClipboard } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n/I18nProvider";
+import { useWorkspaceAI } from "@/lib/ai/WorkspaceAIContext";
 
 interface ModuleCardProps {
   id?: string;
@@ -39,6 +41,7 @@ export function ModuleCard({
   onRegenerate,
 }: ModuleCardProps) {
   const { t } = useI18n();
+  const { refine } = useWorkspaceAI();
   const [open, setOpen] = useState(defaultOpen);
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -105,6 +108,9 @@ export function ModuleCard({
         </div>
 
         <div className="flex items-center gap-1">
+          <IconBtn label={t("ws.refine")} onClick={() => refine(title, t("ws.refinePrompt"))}>
+            <Sparkles className="h-4 w-4 text-brand-purple" />
+          </IconBtn>
           <IconBtn label={t("ws.copy")} onClick={handleCopy}>
             {copied ? (
               <Check className="h-4 w-4 text-emerald-500" />

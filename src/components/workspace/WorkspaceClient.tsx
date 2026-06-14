@@ -13,6 +13,8 @@ import type { CaseTimelineNode } from "@/lib/cases/types";
 import { ModuleCard } from "@/components/ui/ModuleCard";
 import { Badge, Button, GlassCard, Meter, ScoreRing } from "@/components/ui/primitives";
 import { CATEGORY_META, getNews } from "@/lib/data/news";
+import { contentMode } from "@/lib/ai/provider";
+import { useWorkspaceAI } from "@/lib/ai/WorkspaceAIContext";
 import { cn } from "@/lib/utils";
 import type { DictKey } from "@/lib/i18n/dictionaries";
 import {
@@ -52,7 +54,25 @@ export function WorkspaceClient({ id, query }: { id: string; query?: string }) {
   const c = useMemo(() => getCase(id, 0, override) as unknown as Case, [id, query]);
   const meta = CATEGORY_META[c.category];
   const news = getNews(id);
+  const cmode = contentMode(id);
   const modeCfg = RESEARCH_MODES.find((m) => m.id === mode)!;
+  const { setWorkspace } = useWorkspaceAI();
+
+  // register this workspace as Copilot memory
+  useEffect(() => {
+    setWorkspace({
+      id, title: tl(c.event), category: c.category,
+      theories: c.theories.map((t) => tl(t.name)),
+      methods: c.methods.map((m) => tl(m.name)),
+      datasets: (c.neededDatasets ?? []).map((d) => tl(d.name)),
+      papers: (c.papers ?? []).map((p) => p.citation),
+      proposals: c.proposals.map((p) => tl(p.name)),
+      stakeholders: (c.stakeholdersDetailed ?? []).map((s) => tl(s.name)),
+      rq: tl(c.essay.advanced.rq),
+      thesis: tl(c.essay.advanced.thesis),
+    });
+    return () => setWorkspace(null);
+  }, [c, id, tl, setWorkspace]);
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -84,6 +104,11 @@ export function WorkspaceClient({ id, query }: { id: string; query?: string }) {
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex flex-wrap items-center gap-2">
               <Badge color={meta.color as never}>{t(meta.key)}</Badge>
+              <span title={t(`mode.${cmode}.t` as DictKey)} className="cursor-help">
+                <Badge color={cmode === "sourced" ? "green" : cmode === "live" ? "blue" : "amber"}>
+                  {cmode === "sourced" ? "✓ " : cmode === "live" ? "⚡ " : "✎ "}{t(`mode.${cmode}` as DictKey)}
+                </Badge>
+              </span>
               {news && <span className="text-xs text-ink-muted">{news.publisher} · {news.date}</span>}
               {news && <a href={news.url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs font-medium text-brand-deep hover:underline"><ExternalLink className="h-3 w-3" />{t("common.readOriginal")}</a>}
             </div>

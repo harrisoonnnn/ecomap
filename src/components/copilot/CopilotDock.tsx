@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Sparkles, X, Send, Mic, FileUp, Link2, FileText, Check } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nProvider";
 import { cn } from "@/lib/utils";
-import { copilotReply } from "@/lib/ai/generate";
+import { researchReply } from "@/lib/ai/research";
+import { useWorkspaceAI } from "@/lib/ai/WorkspaceAIContext";
 import type { DictKey } from "@/lib/i18n/dictionaries";
 
 interface Msg {
@@ -20,6 +21,7 @@ const TRY: DictKey[] = ["cp.try1", "cp.try2", "cp.try3"];
 
 export function CopilotDock() {
   const { t, locale } = useI18n();
+  const { workspace, pending, clearPending } = useWorkspaceAI();
   const [open, setOpen] = useState(false);
   const [hover, setHover] = useState(false);
   const [input, setInput] = useState("");
@@ -31,17 +33,27 @@ export function CopilotDock() {
     scrollRef.current?.scrollTo({ top: 9e9, behavior: "smooth" });
   }, [msgs, typing]);
 
-  function ask(text: string) {
+  const ask = useCallback((text: string, prefix?: string) => {
     const q = text.trim();
     if (!q) return;
-    setMsgs((m) => [...m, { role: "user", text: q }]);
+    const shown = prefix ? `${prefix}${q}` : q;
+    setMsgs((m) => [...m, { role: "user", text: shown }]);
     setInput("");
     setTyping(true);
     setTimeout(() => {
-      setMsgs((m) => [...m, { role: "ai", text: copilotReply(q, locale) }]);
+      setMsgs((m) => [...m, { role: "ai", text: researchReply(q, locale, workspace) }]);
       setTyping(false);
-    }, 750);
-  }
+    }, 700);
+  }, [locale, workspace]);
+
+  // a "Refine with AI" button elsewhere can drive the dock
+  useEffect(() => {
+    if (!pending) return;
+    setOpen(true);
+    const label = locale === "zh" ? `优化「${pending.section}」：` : `Refine ${pending.section}: `;
+    ask(pending.prompt, label);
+    clearPending();
+  }, [pending, ask, clearPending, locale]);
 
   const tools = [
     { icon: Mic, label: t("as.voice") },
@@ -101,7 +113,7 @@ export function CopilotDock() {
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-brand-deep to-brand-purple text-white"><Sparkles className="h-4 w-4" /></div>
               <div className="leading-tight">
                 <p className="text-sm font-semibold text-ink">{t("cp.title")}</p>
-                <p className="text-[10px] text-ink-muted">{t("cp.hint")}</p>
+                <p className="max-w-[14rem] truncate text-[10px] text-ink-muted">{workspace ? `${locale === "zh" ? "上下文" : "Context"}: ${workspace.title}` : t("cp.hint")}</p>
               </div>
               <button type="button" onClick={() => setOpen(false)} aria-label="Close" className="ml-auto rounded-lg p-1.5 text-ink-muted hover:surface hover:text-ink">
                 <X className="h-4 w-4" />
@@ -125,8 +137,11 @@ export function CopilotDock() {
                     ))}
                   </ul>
                   <div className="mt-4 flex flex-wrap gap-1.5">
-                    {TRY.map((k) => (
-                      <button type="button" key={k} onClick={() => ask(t(k))} className="rounded-full border hairline surface-soft px-2.5 py-1 text-[11px] font-medium text-brand-deep transition-colors hover:surface-strong">{t(k)}</button>
+                    {(workspace
+                      ? [t("cp.ws1"), t("cp.ws2"), t("cp.ws3"), t("cp.ws4")]
+                      : TRY.map((k) => t(k))
+                    ).map((label) => (
+                      <button type="button" key={label} onClick={() => ask(label)} className="rounded-full border hairline surface-soft px-2.5 py-1 text-[11px] font-medium text-brand-deep transition-colors hover:surface-strong">{label}</button>
                     ))}
                   </div>
                 </motion.div>

@@ -1,7 +1,7 @@
 import type { NewsCategory, DiagramKind } from "@/types";
 import { CaseTheory, CaseMethod, CaseEvidence, L, LS } from "./types";
 
-interface Pool {
+export interface Pool {
   theories: { n: [string, string]; d: DiagramKind; m: number; ex: [string, string]; rel: [string, string] }[];
   methods: { n: [string, string]; f: number; p: [string, string]; formula: string }[];
   authors: { name: string; field: [string, string] }[];

@@ -3,6 +3,7 @@ import "./globals.css";
 import "@xyflow/react/dist/style.css";
 import { I18nProvider } from "@/lib/i18n/I18nProvider";
 import { ThemeProvider, themeInitScript } from "@/lib/theme/ThemeProvider";
+import { WorkspaceAIProvider } from "@/lib/ai/WorkspaceAIContext";
 import { AnimatedBackground } from "@/components/layout/AnimatedBackground";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -33,11 +34,13 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <I18nProvider>
-            <AnimatedBackground />
-            <Navbar />
-            <main className="relative z-10 min-h-[60vh]">{children}</main>
-            <Footer />
-            <CopilotDock />
+            <WorkspaceAIProvider>
+              <AnimatedBackground />
+              <Navbar />
+              <main className="relative z-10 min-h-[60vh]">{children}</main>
+              <Footer />
+              <CopilotDock />
+            </WorkspaceAIProvider>
           </I18nProvider>
         </ThemeProvider>
       </body>
