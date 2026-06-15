@@ -73,7 +73,7 @@ export default function AssistantPage() {
         clearInterval(iv);
         setStep(steps - 1);
         if (data?.ok && data?.case) {
-          saveAICase(target, data.case);
+          saveAICase(target, data.case, data.searched);
           router.push(`/workspace/${target}`);
         } else {
           if (data?.reason && data.reason !== "no-key") {

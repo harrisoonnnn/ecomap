@@ -16,7 +16,7 @@ export function isSourced(id: string): boolean {
   return SOURCED_CASES.has(id);
 }
 
-export type ContentMode = "sourced" | "templated" | "live";
+export type ContentMode = "sourced" | "templated" | "live" | "websearch";
 export function contentMode(id: string): ContentMode {
   return isSourced(id) ? "sourced" : "templated";
 }

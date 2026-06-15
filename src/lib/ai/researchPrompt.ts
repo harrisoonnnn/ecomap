@@ -38,10 +38,13 @@ Replicate this proven 11-step methodology (set by a benchmark case on China's de
 
 Output STRICT JSON only (no prose, no markdown) matching the schema given by the user. Keep each text field concise (1-3 sentences). Provide a Chinese translation in "zh" for every localised field where possible.`;
 
-export function researchUserPrompt(topic: string): string {
-  return `Topic to research: "${topic}"
+export function researchUserPrompt(topic: string, brief = ""): string {
+  const sourceBlock = brief
+    ? `${brief}\n\nGround your output in the REAL sources above — reuse their exact institutions, titles, dates, figures and URLs in the relevant factors, datasets, papers and timeline. Do not invent URLs when a real one is provided above.\n\n`
+    : "";
+  return `${sourceBlock}Topic to research: "${topic}"
 
-Using your knowledge of real institutions, datasets and literature, return ONLY a JSON object with this exact shape (all text fields may be either a string or {"en","zh"}):
+${brief ? "Combine the live search results above with your economics knowledge." : "Using your knowledge of real institutions, datasets and literature,"} return ONLY a JSON object with this exact shape (all text fields may be either a string or {"en","zh"}):
 {
  "category": one of ["macro","finance","labour","development","tech","trade","policy","sustainability"],
  "title": {"en","zh"},

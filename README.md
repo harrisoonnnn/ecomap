@@ -35,6 +35,7 @@ Glassmorphism + rounded cards + smooth Framer Motion animations over a flowing a
 This is a self-contained, investor-demoable MVP with **realistic mock data**. The AI and data layers sit behind clean interfaces so production providers drop in with minimal change:
 
 - `src/lib/ai/openai.ts` — DeepSeek client (server-only); `generate.ts` — offline generator + copilot fallback
+- `src/lib/ai/search.ts` — Tavily (web/news/gov/policy) + Semantic Scholar (papers) retrieval layer
 - `src/lib/ai/provider.ts` — provider seam + content-mode labelling (`sourced` / `templated` / `live`)
 - `src/lib/ai/research.ts` — workspace-aware research-partner replies
 - `src/lib/cases/` — hand-authored benchmark cases + the generic engine that gives **any** typed topic the same benchmark depth (background, timeline, stakeholders, theory, methods, charts, datasets, literature, proposals, synthesis-layer essay)
@@ -44,15 +45,22 @@ This is a self-contained, investor-demoable MVP with **realistic mock data**. Th
 #### Live AI (optional)
 Without a key, Ecomap runs fully offline: the benchmark **delivery-riders** case is hand-researched with real institutions/reports/links (badged *Researched & sourced*), and every other topic uses Ecomap's research **methodology framework** with placeholder sources (badged *AI methodology framework* — verify figures before citing). 
 
-To enable **AI-generated** research for any topic (via **DeepSeek**):
+To enable **AI-generated** research for any topic (via **DeepSeek** + real search):
 
 ```bash
 cp .env.example .env.local
-# edit .env.local and set DEEPSEEK_API_KEY=sk-...  (get one at platform.deepseek.com)
+# DEEPSEEK_API_KEY=sk-...      (platform.deepseek.com) — required for AI
+# TAVILY_API_KEY=tvly-...      (tavily.com) — adds live web/news/gov/policy search
+# SEMANTIC_SCHOLAR_API_KEY=... (optional) — academic papers (works keyless too)
 npm run dev
 ```
 
-With a key set, the Research Assistant calls `POST /api/generate`, which asks **DeepSeek** (OpenAI-compatible Chat Completions, JSON mode) to produce a full `CaseStudy` following the same 11-step methodology as the benchmark case (badged *AI research (DeepSeek)*). DeepSeek has no hosted web-search tool, so it draws on its training knowledge: it names **real institutions, datasets and papers with links**, but specific figures may be dated — the badge tells users to verify at the linked source. The Copilot (`POST /api/copilot`) answers with the model using the open workspace as context. Both routes fall back to the offline engine on any error, so the app never breaks. The key is read server-side only (`src/lib/ai/openai.ts`) and is never sent to the browser.
+**Retrieval-augmented pipeline.** When a topic is submitted, `POST /api/generate`:
+1. **Tavily** runs parallel searches for current **news**, **official statistics / government reports**, and **policy documents**;
+2. **Semantic Scholar** retrieves relevant **academic papers** (authors, year, venue, citations, links);
+3. those real sources are assembled into a brief and handed to **DeepSeek**, which grounds a full `CaseStudy` (the 11-step methodology) in them — reusing the real URLs, figures and citations.
+
+The workspace badges the result **🔎 Live web + papers** (with a count of web results + papers used). The Copilot (`POST /api/copilot`) also runs a live Tavily + Semantic Scholar search when you ask it for evidence or sources, then answers grounded in them. If Tavily isn't configured, DeepSeek still generates from its knowledge (badged *AI research (DeepSeek)*); if no AI key is set, everything falls back to the offline methodology engine. Keys are read server-side only and never sent to the browser. Always verify key figures at the linked source.
 
 Tunables: `DEEPSEEK_MODEL` (default `deepseek-chat`, or `deepseek-reasoner`), `DEEPSEEK_BASE_URL`.
 

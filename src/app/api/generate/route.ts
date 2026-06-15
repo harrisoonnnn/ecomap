@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { hasAI, runAI, parseJsonLoose } from "@/lib/ai/openai";
+import { gatherSources } from "@/lib/ai/search";
 import { RESEARCH_SYSTEM, researchUserPrompt, mapToCase } from "@/lib/ai/researchPrompt";
 
 export const runtime = "nodejs";
@@ -25,24 +26,37 @@ export async function POST(req: Request) {
 
   const cacheKey = `${id}::${topic}`;
   if (cache.has(cacheKey)) {
-    return NextResponse.json({ ok: true, cached: true, case: cache.get(cacheKey) });
+    return NextResponse.json({ ok: true, cached: true, ...(cache.get(cacheKey) as object) });
   }
 
+  // STEP 1 — real web + academic search (Tavily + Semantic Scholar). Optional.
+  let brief = "";
+  let searched = { used: false, web: 0, papers: 0 };
+  try {
+    const r = await gatherSources(topic);
+    brief = r.brief;
+    searched = { used: r.used, web: r.web, papers: r.papers };
+  } catch {
+    /* search failed — fall through to knowledge-only generation */
+  }
+
+  // STEP 2 — DeepSeek grounds the CaseStudy JSON in the retrieved sources.
   try {
     const text = await runAI({
       system: RESEARCH_SYSTEM,
-      user: researchUserPrompt(topic),
+      user: researchUserPrompt(topic, brief),
       json: true,
       maxTokens: 8000,
       temperature: 0.4,
     });
     const raw = parseJsonLoose(text);
     const built = mapToCase(id, raw);
-    cache.set(cacheKey, built);
-    return NextResponse.json({ ok: true, case: built });
+    const payload = { case: built, searched };
+    cache.set(cacheKey, payload);
+    return NextResponse.json({ ok: true, ...payload });
   } catch (e) {
     return NextResponse.json(
-      { ok: false, reason: "error", message: e instanceof Error ? e.message : "unknown" },
+      { ok: false, reason: "error", message: e instanceof Error ? e.message : "unknown", searched },
       { status: 200 }
     );
   }

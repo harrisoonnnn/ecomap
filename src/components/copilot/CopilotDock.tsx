@@ -51,7 +51,7 @@ export function CopilotDock() {
         const res = await fetch("/api/copilot", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: q, context: ctx }),
+          body: JSON.stringify({ message: q, context: ctx, topic: workspace?.title ?? "" }),
         });
         const data = await res.json();
         const reply = data?.ok && data?.reply ? data.reply : researchReply(q, locale, workspace);

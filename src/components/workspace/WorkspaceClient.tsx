@@ -14,7 +14,7 @@ import { ModuleCard } from "@/components/ui/ModuleCard";
 import { Badge, Button, GlassCard, Meter, ScoreRing } from "@/components/ui/primitives";
 import { CATEGORY_META, getNews } from "@/lib/data/news";
 import { contentMode } from "@/lib/ai/provider";
-import { loadAICase } from "@/lib/ai/clientCache";
+import { loadAICase, loadSearched } from "@/lib/ai/clientCache";
 import { useWorkspaceAI } from "@/lib/ai/WorkspaceAIContext";
 import { cn } from "@/lib/utils";
 import type { DictKey } from "@/lib/i18n/dictionaries";
@@ -54,14 +54,16 @@ export function WorkspaceClient({ id, query }: { id: string; query?: string }) {
   // Research potential is a FIXED expert judgement — no salt, no regeneration.
   const offlineCase = useMemo(() => getCase(id, 0, override) as unknown as Case, [id, query]);
   const [aiCase, setAiCase] = useState<Case | null>(null);
+  const [searched, setSearched] = useState<{ used: boolean; web: number; papers: number } | null>(null);
   useEffect(() => {
     const ai = loadAICase(id);
     if (ai) setAiCase(ai as unknown as Case);
+    setSearched(loadSearched(id));
   }, [id]);
   const c = aiCase ?? offlineCase;
   const meta = CATEGORY_META[c.category];
   const news = getNews(id);
-  const cmode = aiCase ? "live" : contentMode(id);
+  const cmode = aiCase ? (searched?.used ? "websearch" : "live") : contentMode(id);
   const modeCfg = RESEARCH_MODES.find((m) => m.id === mode)!;
   const { setWorkspace } = useWorkspaceAI();
 
@@ -112,8 +114,8 @@ export function WorkspaceClient({ id, query }: { id: string; query?: string }) {
             <div className="mb-1 flex flex-wrap items-center gap-2">
               <Badge color={meta.color as never}>{t(meta.key)}</Badge>
               <span title={t(`mode.${cmode}.t` as DictKey)} className="cursor-help">
-                <Badge color={cmode === "sourced" ? "green" : cmode === "live" ? "blue" : "amber"}>
-                  {cmode === "sourced" ? "✓ " : cmode === "live" ? "⚡ " : "✎ "}{t(`mode.${cmode}` as DictKey)}
+                <Badge color={cmode === "sourced" ? "green" : cmode === "websearch" ? "cyan" : cmode === "live" ? "blue" : "amber"}>
+                  {cmode === "sourced" ? "✓ " : cmode === "websearch" ? "🔎 " : cmode === "live" ? "⚡ " : "✎ "}{t(`mode.${cmode}` as DictKey)}{cmode === "websearch" && searched ? ` · ${searched.web}+${searched.papers}` : ""}
                 </Badge>
               </span>
               {news && <span className="text-xs text-ink-muted">{news.publisher} · {news.date}</span>}
