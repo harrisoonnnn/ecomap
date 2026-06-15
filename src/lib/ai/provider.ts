@@ -1,15 +1,14 @@
 /**
- * Provider seam for live AI. With an OpenAI key configured (server-side), these
- * functions can be upgraded to genuine, sourced generation. Without a key — the
+ * Provider seam for AI. With a DeepSeek key configured (server-side), the
+ * Research Assistant and Copilot generate live analysis; without a key — the
  * default for this self-contained demo — the app uses the deterministic offline
  * engine and the workspace-aware Copilot fallback.
  *
- * Keeping this seam isolated means swapping in a real provider is a one-file change.
+ * Note: this runs on the client too, where server env vars are not readable, so
+ * a live AI-generated case is detected at the call site (sessionStorage) and
+ * badged "live" there. Here we only distinguish hand-authored sourced cases from
+ * the offline methodology template.
  */
-
-export const AI_LIVE = Boolean(
-  typeof process !== "undefined" && process.env && process.env.OPENAI_API_KEY
-);
 
 /** Whether a given case id is hand-authored & sourced vs methodology-templated. */
 const SOURCED_CASES = new Set(["delivery-workers"]);
@@ -19,6 +18,5 @@ export function isSourced(id: string): boolean {
 
 export type ContentMode = "sourced" | "templated" | "live";
 export function contentMode(id: string): ContentMode {
-  if (isSourced(id)) return "sourced";
-  return AI_LIVE ? "live" : "templated";
+  return isSourced(id) ? "sourced" : "templated";
 }

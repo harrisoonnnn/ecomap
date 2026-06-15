@@ -34,7 +34,7 @@ Glassmorphism + rounded cards + smooth Framer Motion animations over a flowing a
 ### Backend / AI seam
 This is a self-contained, investor-demoable MVP with **realistic mock data**. The AI and data layers sit behind clean interfaces so production providers drop in with minimal change:
 
-- `src/lib/ai/generate.ts` — framework generator + copilot (swap for **OpenAI**)
+- `src/lib/ai/openai.ts` — DeepSeek client (server-only); `generate.ts` — offline generator + copilot fallback
 - `src/lib/ai/provider.ts` — provider seam + content-mode labelling (`sourced` / `templated` / `live`)
 - `src/lib/ai/research.ts` — workspace-aware research-partner replies
 - `src/lib/cases/` — hand-authored benchmark cases + the generic engine that gives **any** typed topic the same benchmark depth (background, timeline, stakeholders, theory, methods, charts, datasets, literature, proposals, synthesis-layer essay)
@@ -44,17 +44,17 @@ This is a self-contained, investor-demoable MVP with **realistic mock data**. Th
 #### Live AI (optional)
 Without a key, Ecomap runs fully offline: the benchmark **delivery-riders** case is hand-researched with real institutions/reports/links (badged *Researched & sourced*), and every other topic uses Ecomap's research **methodology framework** with placeholder sources (badged *AI methodology framework* — verify figures before citing). 
 
-To enable **genuine, live, web-searched** research for any topic:
+To enable **AI-generated** research for any topic (via **DeepSeek**):
 
 ```bash
 cp .env.example .env.local
-# edit .env.local and set OPENAI_API_KEY=sk-...
+# edit .env.local and set DEEPSEEK_API_KEY=sk-...  (get one at platform.deepseek.com)
 npm run dev
 ```
 
-With a key set, the Research Assistant calls `POST /api/generate`, which uses the **OpenAI Responses API with the hosted `web_search` tool** to actually look up real institutions, reports, datasets and papers — then returns a full `CaseStudy` following the same 11-step methodology as the benchmark case (badged *Live AI research*). The Copilot (`POST /api/copilot`) answers with the live model using the open workspace as context. Both routes fall back to the offline engine on any error, so the app never breaks. The key is read server-side only (`src/lib/ai/openai.ts`) and is never sent to the browser.
+With a key set, the Research Assistant calls `POST /api/generate`, which asks **DeepSeek** (OpenAI-compatible Chat Completions, JSON mode) to produce a full `CaseStudy` following the same 11-step methodology as the benchmark case (badged *AI research (DeepSeek)*). DeepSeek has no hosted web-search tool, so it draws on its training knowledge: it names **real institutions, datasets and papers with links**, but specific figures may be dated — the badge tells users to verify at the linked source. The Copilot (`POST /api/copilot`) answers with the model using the open workspace as context. Both routes fall back to the offline engine on any error, so the app never breaks. The key is read server-side only (`src/lib/ai/openai.ts`) and is never sent to the browser.
 
-Tunables: `OPENAI_MODEL` (default `gpt-4.1`), `OPENAI_BASE_URL`.
+Tunables: `DEEPSEEK_MODEL` (default `deepseek-chat`, or `deepseek-reasoner`), `DEEPSEEK_BASE_URL`.
 
 The workspace-aware **Copilot** remembers the open workspace (topic, theories, methods, evidence, thesis) and acts as a research partner: "expand the theory", "find stronger evidence", "give me Chinese sources", "replace this theory with behavioural economics", "challenge my argument", "suggest a stronger thesis". Every module also has a **Refine with AI** button that opens the Copilot pre-seeded with that section's context.
 
@@ -79,7 +79,7 @@ src/
 
 ## 🌐 Roadmap to production
 
-1. Replace `lib/ai/generate.ts` mock with OpenAI calls (structured JSON output per section).
+1. Live AI via DeepSeek is wired (`/api/generate`, `/api/copilot`); extend prompts per section as needed.
 2. Wire `lib/data` to Supabase tables (`projects`, `workspace_sections`, `evidence_sources`, …).
 3. Add Clerk auth + per-user project persistence.
 4. Real PDF/URL ingestion for the Copilot upload modes.

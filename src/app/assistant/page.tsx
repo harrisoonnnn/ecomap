@@ -102,7 +102,7 @@ export default function AssistantPage() {
 
       {notice && (
         <div className="mx-auto mt-4 max-w-xl rounded-xl border border-amber-300 bg-amber-50/80 px-4 py-2 text-center text-xs text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300">
-          Live AI unavailable ({notice}) — showing the offline methodology framework instead.
+          AI research unavailable ({notice}) — showing the offline methodology framework instead.
         </div>
       )}
 

@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import { hasOpenAI, runOpenAI, parseJsonLoose } from "@/lib/ai/openai";
-import {
-  RESEARCH_SYSTEM, researchUserPrompt, mapToCase,
-  BRIEF_SYSTEM, briefUserPrompt,
-} from "@/lib/ai/researchPrompt";
+import { hasAI, runAI, parseJsonLoose } from "@/lib/ai/openai";
+import { RESEARCH_SYSTEM, researchUserPrompt, mapToCase } from "@/lib/ai/researchPrompt";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -12,7 +9,7 @@ export const maxDuration = 300;
 const cache = new Map<string, unknown>();
 
 export async function POST(req: Request) {
-  if (!hasOpenAI()) {
+  if (!hasAI()) {
     return NextResponse.json({ ok: false, reason: "no-key" }, { status: 200 });
   }
   let topic = "";
@@ -31,31 +28,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, cached: true, case: cache.get(cacheKey) });
   }
 
-  // STEP 1 — web-searched research brief (real sources). Tool + plain text only.
-  let brief = "";
   try {
-    brief = await runOpenAI({
-      system: BRIEF_SYSTEM,
-      user: briefUserPrompt(topic),
-      webSearch: true,
-      maxTokens: 6000,
-      temperature: 0.3,
-    });
-  } catch (e) {
-    return NextResponse.json(
-      { ok: false, reason: "search-failed", message: e instanceof Error ? e.message : "unknown" },
-      { status: 200 }
-    );
-  }
-
-  // STEP 2 — convert the sourced brief into strict CaseStudy JSON (no tools).
-  try {
-    const text = await runOpenAI({
+    const text = await runAI({
       system: RESEARCH_SYSTEM,
-      user: researchUserPrompt(topic, brief),
+      user: researchUserPrompt(topic),
       json: true,
-      maxTokens: 16000,
-      temperature: 0.3,
+      maxTokens: 8000,
+      temperature: 0.4,
     });
     const raw = parseJsonLoose(text);
     const built = mapToCase(id, raw);
@@ -63,7 +42,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, case: built });
   } catch (e) {
     return NextResponse.json(
-      { ok: false, reason: "json-failed", message: e instanceof Error ? e.message : "unknown", brief: brief.slice(0, 500) },
+      { ok: false, reason: "error", message: e instanceof Error ? e.message : "unknown" },
       { status: 200 }
     );
   }

@@ -1,95 +1,79 @@
 import "server-only";
 
 /**
- * Minimal server-side OpenAI client (no SDK dependency — uses fetch).
- * Reads OPENAI_API_KEY from the environment; never hardcode a key.
+ * Server-side DeepSeek client (OpenAI-compatible Chat Completions API, via fetch).
+ * Reads DEEPSEEK_API_KEY from the environment; never hardcode a key.
  *
- * Uses the Responses API with the hosted `web_search` tool so the model can
- * actually look up real institutions, reports, datasets and papers — the same
- * research behaviour demonstrated by hand in the delivery-rider benchmark case.
+ * Note: DeepSeek has no hosted web-search tool. The model draws on its training
+ * knowledge to name real institutions, reports, datasets and papers. These are
+ * usually genuine for well-known topics, but specific figures may be dated and
+ * should be verified — the UI labels AI output accordingly.
  */
 
-const KEY = process.env.OPENAI_API_KEY;
-const MODEL = process.env.OPENAI_MODEL || "gpt-4.1";
-const BASE = process.env.OPENAI_BASE_URL || "https://api.openai.com/v1";
+const KEY = process.env.DEEPSEEK_API_KEY;
+const MODEL = process.env.DEEPSEEK_MODEL || "deepseek-chat";
+const BASE = process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com";
 
-export function hasOpenAI(): boolean {
+export function hasAI(): boolean {
   return Boolean(KEY);
 }
+// kept for backward-compat with existing imports
+export const hasOpenAI = hasAI;
 
 interface RunOpts {
   system: string;
   user: string;
-  webSearch?: boolean;
-  /** ask the model to return strict JSON (do NOT combine with webSearch) */
+  /** ask the model to return strict JSON */
   json?: boolean;
   maxTokens?: number;
   temperature?: number;
+  /** ignored — DeepSeek has no hosted web search; kept for call-site compatibility */
+  webSearch?: boolean;
 }
 
-/** Calls the Responses API and returns the concatenated output text. */
-export async function runOpenAI(opts: RunOpts): Promise<string> {
-  if (!KEY) throw new Error("OPENAI_API_KEY not set");
+export async function runAI(opts: RunOpts): Promise<string> {
+  if (!KEY) throw new Error("DEEPSEEK_API_KEY not set");
 
   const body: Record<string, unknown> = {
     model: MODEL,
-    input: [
+    messages: [
       { role: "system", content: opts.system },
       { role: "user", content: opts.user },
     ],
     temperature: opts.temperature ?? 0.4,
-    max_output_tokens: opts.maxTokens ?? 8000,
+    max_tokens: opts.maxTokens ?? 8000,
+    stream: false,
   };
-  // The hosted web-search tool type in the Responses API is "web_search_preview".
-  if (opts.webSearch) body.tools = [{ type: "web_search_preview" }];
-  // Structured JSON and the web-search tool conflict — only set format when NOT searching.
-  if (opts.json && !opts.webSearch) body.text = { format: { type: "json_object" } };
+  if (opts.json) body.response_format = { type: "json_object" };
 
-  const res = await fetch(`${BASE}/responses`, {
+  const res = await fetch(`${BASE}/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${KEY}`,
     },
     body: JSON.stringify(body),
-    // research calls can be slow; give them room
     signal: AbortSignal.timeout(170_000),
   });
 
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
-    throw new Error(`OpenAI ${res.status}: ${detail.slice(0, 400)}`);
+    throw new Error(`DeepSeek ${res.status}: ${detail.slice(0, 400)}`);
   }
 
   const data = await res.json();
-  const text = extractText(data);
-  if (!text) throw new Error("OpenAI returned empty output");
+  const text = data?.choices?.[0]?.message?.content;
+  if (typeof text !== "string" || !text.trim()) throw new Error("DeepSeek returned empty output");
   return text;
 }
-
-/** Responses API returns a structured object; pull out all output_text parts. */
-function extractText(data: unknown): string {
-  const d = data as {
-    output_text?: string;
-    output?: { content?: { type?: string; text?: string }[] }[];
-  };
-  if (typeof d.output_text === "string" && d.output_text.trim()) return d.output_text;
-  const parts: string[] = [];
-  for (const item of d.output ?? []) {
-    for (const c of item.content ?? []) {
-      if (c.type === "output_text" && typeof c.text === "string") parts.push(c.text);
-    }
-  }
-  return parts.join("\n").trim();
-}
+// backward-compat alias
+export const runOpenAI = runAI;
 
 /** Robustly parse a JSON object out of a model response (handles code fences). */
 export function parseJsonLoose<T = unknown>(text: string): T {
   let s = text.trim();
-  // strip ```json ... ``` fences
   const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fence) s = fence[1].trim();
-  // grab the outermost {...}
   const first = s.indexOf("{");
   const last = s.lastIndexOf("}");
   if (first !== -1 && last !== -1) s = s.slice(first, last + 1);

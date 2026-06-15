@@ -19,50 +19,29 @@ const num = (v: unknown, fb: number): number => (typeof v === "number" && isFini
 const DIAGRAMS: DiagramKind[] = ["supplyDemand", "ppc", "costCurves", "labourMarket", "externalities", "adas"];
 const okDiagram = (v: unknown): DiagramKind => (DIAGRAMS.includes(v as DiagramKind) ? (v as DiagramKind) : "supplyDemand");
 
-export const BRIEF_SYSTEM = `You are a meticulous economics research analyst. You use web search to gather REAL, current, verifiable sources on a topic. You never invent statistics or citations. For every claim you give the exact institution, the exact report/dataset/paper title, the year, a working URL, and the specific key figure or finding.`;
+export const RESEARCH_SYSTEM = `You are Ecomap's AI Economics & Policy Research Department. You produce rigorous, university-level research frameworks for any economic, financial, labour, trade or public-policy topic.
 
-export function briefUserPrompt(topic: string): string {
-  return `Research the topic: "${topic}" using web search.
+Draw on your knowledge to name REAL institutions, real report/dataset titles, real authors and papers, and plausible direct URLs (e.g. data.worldbank.org, ilo.org, imf.org, nber.org, scholar.google.com search links). Be specific: give the institution, the title, the year, a URL, and the key finding or figure. Do NOT fabricate precise statistics you are unsure of — when a number may be dated, phrase it as "≈" or "around" and make clear it should be verified at the linked source. Prefer primary sources: national statistics agencies, central banks, IMF/World Bank/OECD/ILO, peer-reviewed journals, NBER/SSRN.
 
-Produce a concise but information-dense research brief in plain text with these sections, citing REAL sources (institution — title (year) — URL — key figure/finding) throughout:
-
-1. EVENT / CONTEXT: what it is, why it matters now, the sharp research question, the major stakeholders.
-2. BACKGROUND — 8 perspectives, each with at least one real source + figure: Historical, Social, Cultural, Political, Economic, Technological, Environmental, Legal.
-3. TIMELINE: 5-6 dated milestones (causes, trigger, key developments, outlook).
-4. STAKEHOLDERS: 5-6 groups with their goals, gains, costs and conflicts.
-5. ECONOMIC THEORIES most relevant to THIS topic (4-6), and why each applies.
-6. QUANTITATIVE METHODS suited to it (3-4).
-7. DATASETS: 4-6 SPECIFIC datasets with institution, website and direct URL.
-8. LITERATURE: 8-10 real papers/reports (authors, year, title, finding, URL).
-9. POLICY OPTIONS: 6 distinct proposals.
-
-Be specific with numbers and links. This brief will be turned into a structured framework, so pack in the real institutions, figures, years and URLs.`;
-}
-
-export const RESEARCH_SYSTEM = `You are Ecomap's AI Economics & Policy Research Department. You convert a sourced research brief into a rigorous, university-level research framework JSON.
-
-Replicate this proven 11-step methodology (the standard set by a benchmark case on China's delivery-rider social insurance):
+Replicate this proven 11-step methodology (set by a benchmark case on China's delivery-rider social insurance):
 1 Event identification (what happened, why it matters, research question, stakeholders)
-2 Background analysis from 8 DISTINCT perspectives (historical, social, cultural, political, economic, technological, environmental, legal) — each with REAL sources, why it matters, who benefits, who loses, an essay entry point. No repeated templates.
+2 Background from 8 DISTINCT perspectives (historical, social, cultural, political, economic, technological, environmental, legal) — each with a real source + figure, why it matters, who benefits, who loses, an essay entry point. No repeated templates.
 3 Narrative timeline (causes, trigger, milestones, future) with what/why/who/influence/importance.
-4 Stakeholder analysis (goals, benefit, cost, incentives, conflicts, shared interests) + relationships.
-5 Economic theory selected for THIS topic (not fixed) — what it is, why relevant here, how it applies, strengths, weaknesses, evaluation, suggested diagram.
+4 Stakeholder analysis (goals, benefit, cost, incentives, conflicts, shared) + relationships.
+5 Economic theory selected for THIS topic — what it is, why relevant here, how it applies, strengths, weaknesses, evaluation, suggested diagram.
 6 Mathematical modelling explained for beginners (what/how/why/data needed/how applied).
 7 Evidence: specific datasets with institution, website and direct link.
-8 Literature review: at least 8 genuinely relevant papers with citation, authors, year, finding, why it helps, extract, link.
-9 At least 6 policy proposals (objective, mechanism, steps, cost, benefits, stakeholders, feasibility, metrics).
+8 Literature: 8+ real papers (citation, authors, year, finding, why it helps, extract, link).
+9 6 policy proposals (objective, mechanism, steps, cost, benefits, stakeholders, feasibility, metrics).
 10 Evaluation embedded IN each proposal (problems, unintended consequences, political challenges, trade-offs, long-term risks).
-11 Essay construction: integrated arguments where each visibly inherits a theory, a math method, evidence and literature, plus a writing logic chain.
+11 Essay construction: integrated arguments each inheriting a theory, a math method, evidence and literature, plus a writing logic chain.
 
 Output STRICT JSON only (no prose, no markdown) matching the schema given by the user. Keep each text field concise (1-3 sentences). Provide a Chinese translation in "zh" for every localised field where possible.`;
 
-export function researchUserPrompt(topic: string, brief = ""): string {
-  const sourceBlock = brief
-    ? `Use ONLY the following sourced research brief (gathered via live web search) as your factual basis. Preserve the exact institutions, report titles, figures, years and URLs from it — do not invent new ones.\n\n=== RESEARCH BRIEF ===\n${brief}\n=== END BRIEF ===\n\n`
-    : "";
-  return `${sourceBlock}Topic: "${topic}"
+export function researchUserPrompt(topic: string): string {
+  return `Topic to research: "${topic}"
 
-Return ONLY a JSON object with this exact shape (all text fields may be either a string or {"en","zh"}):
+Using your knowledge of real institutions, datasets and literature, return ONLY a JSON object with this exact shape (all text fields may be either a string or {"en","zh"}):
 {
  "category": one of ["macro","finance","labour","development","tech","trade","policy","sustainability"],
  "title": {"en","zh"},
